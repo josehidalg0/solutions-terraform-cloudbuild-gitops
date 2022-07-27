@@ -16,3 +16,5 @@
 variable "project" {}
 variable "subnet" {}
 variable "customtags" {}
+variable "instance_name" {}
+variable "container_image" {}

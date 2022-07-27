@@ -28,13 +28,53 @@ module "vpc" {
 }
 
 module "http_server" {
-  source  = "../../modules/http_server"
-  project = "${var.project}"
-  subnet  = "${module.vpc.subnet}"
+  source      = "../../modules/http_server"
+  project     = "${var.project}"
+  subnet      = "${module.vpc.subnet}"
+  customtags  = ["ssh"]
 }
 
 module "firewall" {
   source  = "../../modules/firewall"
   project = "${var.project}"
   subnet  = "${module.vpc.subnet}"
+}
+
+
+
+
+#----------------------------
+
+module "besu_node" {
+  source  = "../../modules/besu_node"
+  project = "${var.project}"
+  subnet  = "${module.vpc.subnet}"
+  customtags  = ["ssh", "dev"]
+  instance_name = "validator99"
+#}
+
+
+#module "gce-worker-container" {
+#  source = "./gce-with-container"
+  container_image = "gcr.io/google-samples/hello-app:1.0"
+  #privileged_mode = true
+  #activate_tty = true
+  # custom_command = [
+  #   "./scripts/start-worker.sh"
+  # ]
+  # env_variables = {
+  #   Q_CLUSTER_WORKERS = "2"
+  #   DB_HOST = "your-database-host"
+  #   DB_PORT = "5432"
+  #   DB_ENGINE = "django.db.backends.postgresql"
+  #   DB_NAME = "db_production"
+  #   DB_SCHEMA = "jafar_prd"
+  #   DB_USER = "role_jafar_prd"
+  #   DB_PASS = "this-is-my-honest-password"
+  #   DB_USE_SSL = "True"
+  # }
+  
+  #network_name = "default"
+  # This has the permission to download images from Container Registry
+  #client_email = "custom-gce-dealer@${var.project}.iam.gserviceaccount.com"
 }
