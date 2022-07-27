@@ -15,3 +15,7 @@
 
 variable "project" {}
 variable "subnet" {}
+
+variable "iap-range" {
+    default = "35.235.240.0/20"
+}
