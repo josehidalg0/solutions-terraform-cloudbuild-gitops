@@ -1,1 +1,1 @@
-project="besu-twocrazyand-pre"
+project = "besu-twocrazyand-pre"

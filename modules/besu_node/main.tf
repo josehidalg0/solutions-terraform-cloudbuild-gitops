@@ -20,33 +20,35 @@ locals {
 
 module "gce-container" {
   source = "terraform-google-modules/container-vm/google"
-  version = "~> 2.0"
+  version = "~> 3.0.0"
+
+  cos_image_name = "cos-stable-97-16919-29-58"
 
   container = {
-    image= var.container_image #
+    image=  "gcr.io/google-containers/alpine-with-bash" ##var.container_image #
     #env = local.env_variables
-    env = [
-      {
-        name = "TEST_VAR"
-        value = "Hello World!"
-      }
-    ],
+    # env = [
+    #   {
+    #     name = "TEST_VAR"
+    #     value = "Hello World!"
+    #   }
+    # ],
 
     # Declare volumes to be mounted.
     # This is similar to how docker volumes are declared.
-    volumeMounts = [
-      {
-        mountPath = "/cache"
-        name      = "tempfs-0"
-        readOnly  = false
-      },
-      {
-        mountPath = "/persistent-data"
-        name      = "data-disk-0"
-        readOnly  = false
-      },
-    ]
-  }
+    # volumeMounts = [
+    #   {
+    #     mountPath = "/cache"
+    #     name      = "tempfs-0"
+    #     readOnly  = false
+    #   },
+    #   {
+    #     mountPath = "/persistent-data"
+    #     name      = "data-disk-0"
+    #     readOnly  = false
+    #   },
+    # ]
+    }
 
   # Declare the Volumes which will be used for mounting.
   volumes = [
@@ -74,17 +76,21 @@ module "gce-container" {
 ##### COMPUTE ENGINE
 resource "google_compute_instance" "default" {
   name = var.instance_name
-  # gcloud compute machine-types list | grep micro | grep us-central1-a
-  # e2-micro / 2 / 1.00
-  # f1-micro / 1 / 0.60
-  # gcloud compute machine-types list | grep small | grep us-central1-a
-  # e2-small / 2 / 2.00
-  # g1-small / 1 / 1.70
   project      = "${var.project}"
   zone         = "europe-west1-b"
-  machine_type = "f1-micro"
+  machine_type = "e2-small" #"f1-micro"
+  
   # If true, allows Terraform to stop the instance to update its properties.
+  scheduling {
+    automatic_restart = true
+  }
+
   allow_stopping_for_update = true
+
+  lifecycle {
+    ignore_changes = [attached_disk]
+  }
+
   boot_disk {
     initialize_params {
       image = module.gce-container.source_image
@@ -97,13 +103,13 @@ resource "google_compute_instance" "default" {
     access_config {}
   }
 
-  metadata = {
-    gce-container-declaration = module.gce-container.metadata_value
-  }
+  # metadata = {
+  #   gce-container-declaration = module.gce-container.metadata_value
+  # }
 
-  labels = {
-    container-vm = module.gce-container.vm_container_label
-  }
+  # labels = {
+  #   container-vm = module.gce-container.vm_container_label
+  # }
   tags = concat(["besu-node"], var.customtags)
 
   # service_account {
